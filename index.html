@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Jogo da Memória - Formas 3D</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('pastaim/fundo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #fff;
+            text-shadow: 2px 2px #000;
+        }
+        #movimentos {
+            color: #fff;
+            font-size: 18px;
+            margin-top: 10px;
+            text-shadow: 1px 1px #000;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 120px);
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .card {
+            width: 120px;
+            height: 120px;
+            background-color: #1976d2;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        .card img {
+            width: 100px;
+            height: 100px;
+            display: none;
+            border-radius: 8px;
+        }
+        .card.revealed img {
+            display: block;
+        }
+        .card.matched {
+            background-color: #4caf50;
+            pointer-events: none;
+        }
+        #fogos {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        #fogos img {
+            width: 400px;
+        }
+        #btnReiniciar {
+            margin-top: 30px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 10000;
+        }
+        #btnReiniciar:hover {
+            background-color: #e68900;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo da Memória: Formas 3D na Vida Real</h1>
+    <div id="movimentos">Movimentos: 0</div>
+    <div class="game-board" id="board"></div>
+    
+    <!-- Efeitos sonoros -->
+    <audio id="somAcerto" src="pastaim/acerto.mp3"></audio>
+    <audio id="somErro" src="pastaim/erro.mp3"></audio>
+    <audio id="musicaFinal" src="pastaim/vitoria.mp3"></audio>
+    
+    <!-- Animação de fogos e botão -->
+    <div id="fogos">
+        <img src="pastaim/fogos.gif" alt="Fogos de artifício">
+        <button id="btnReiniciar" onclick="reiniciarJogo()">Reiniciar Jogo</button>
+    </div>
+
+    <script>
+        const cardsData = [
+            { id: 'cubo', img: 'pastaim/cubo.png' },
+            { id: 'cubo', img: 'pastaim/dado.png' },
+            { id: 'esfera', img: 'pastaim/esfera.png' },
+            { id: 'esfera', img: 'pastaim/bola.png' },
+            { id: 'cilindro', img: 'pastaim/cilindro.png' },
+            { id: 'cilindro', img: 'pastaim/lata.png' },
+            { id: 'cone', img: 'pastaim/cone.png' },
+            { id: 'cone', img: 'pastaim/sorvete.png' },
+            { id: 'piramide', img: 'pastaim/piramide.png' },
+            { id: 'piramide', img: 'pastaim/egito.png' },
+            { id: 'paralelepipedo', img: 'pastaim/paralelepipedo.png' },
+            { id: 'paralelepipedo', img: 'pastaim/caixa-leite.png' },
+        ];
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let movimentos = 0;
+        const somAcerto = document.getElementById('somAcerto');
+        const somErro = document.getElementById('somErro');
+        const musicaFinal = document.getElementById('musicaFinal');
+        const fogos = document.getElementById('fogos');
+
+        function shuffle(array) {
+            return array.sort(() => 0.5 - Math.random());
+        }
+
+        function updateMovimentos() {
+            movimentos++;
+            document.getElementById('movimentos').textContent = `Movimentos: ${movimentos}`;
+        }
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            const shuffledCards = shuffle([...cardsData]);
+            shuffledCards.forEach((cardInfo) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.id = cardInfo.id;
+                const img = document.createElement('img');
+                img.src = cardInfo.img;
+                card.appendChild(img);
+                card.addEventListener('click', () => revealCard(card));
+                board.appendChild(card);
+            });
+        }
+
+        function revealCard(card) {
+            if (lockBoard || card.classList.contains('revealed') || card.classList.contains('matched')) return;
+            card.classList.add('revealed');
+            if (!firstCard) {
+                firstCard = card;
+            } else {
+                secondCard = card;
+                updateMovimentos();
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            lockBoard = true;
+            const isMatch = firstCard.dataset.id === secondCard.dataset.id;
+            if (isMatch) {
+                somAcerto.play();
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                setTimeout(() => {
+                    resetCards();
+                    checkEndGame();
+                }, 500);
+            } else {
+                somErro.play();
+                setTimeout(() => {
+                    firstCard.classList.remove('revealed');
+                    secondCard.classList.remove('revealed');
+                    resetCards();
+                }, 1000);
+            }
+        }
+
+        function resetCards() {
+            [firstCard, secondCard] = [null, null];
+            lockBoard = false;
+        }
+
+        function checkEndGame() {
+            const allMatched = document.querySelectorAll('.card.matched').length === cardsData.length;
+            if (allMatched) {
+                fogos.style.display = 'flex';
+                musicaFinal.play();
+            }
+        }
+
+        function reiniciarJogo() {
+            window.location.href = window.location.href;
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
