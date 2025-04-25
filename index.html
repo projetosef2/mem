@@ -83,18 +83,59 @@
         #btnReiniciar:hover {
             background-color: #e68900;
         }
+        #regras {
+            color: #fff;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            box-shadow: 2px 2px 10px #000;
+            display: none;
+        }
+        #btnRegras {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #03a9f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #btnRegras:hover {
+            background-color: #0288d1;
+        }
     </style>
 </head>
 <body>
     <h1>Jogo da Memória: Formas 3D na Vida Real</h1>
+
+    <!-- Botão de regras -->
+    <button id="btnRegras" onclick="toggleRegras()">Mostrar Regras</button>
+
+    <!-- Regras -->
+    <div id="regras">
+        <h2 style="text-align: center;">Regras do Jogo</h2>
+        <ul style="padding-left: 20px;">
+            <li>O objetivo do jogo é encontrar os pares correspondentes entre formas geométricas 3D e objetos reais que possuem essas formas.</li>
+            <li>Cada par é formado por uma figura geométrica e uma imagem do mundo real com a mesma forma (por exemplo, "Cilinfro" e "Lata").</li>
+            <li>Clique em duas cartas para revelá-las. Se forem correspondentes, elas permanecerão viradas.</li>
+            <li>Se não forem correspondentes, elas serão viradas novamente.</li>
+            <li>Tente completar todos os pares com o menor número de movimentos possível!</li>
+            <li>Quando todos os pares forem encontrados, você verá uma animação comemorativa e poderá reiniciar o jogo.</li>
+        </ul>
+    </div>
+
     <div id="movimentos">Movimentos: 0</div>
     <div class="game-board" id="board"></div>
-    
+
     <!-- Efeitos sonoros -->
     <audio id="somAcerto" src="pastaim/acerto.mp3"></audio>
     <audio id="somErro" src="pastaim/erro.mp3"></audio>
     <audio id="musicaFinal" src="pastaim/vitoria.mp3"></audio>
-    
+
     <!-- Animação de fogos e botão -->
     <div id="fogos">
         <img src="pastaim/fogos.gif" alt="Fogos de artifício">
@@ -116,6 +157,7 @@
             { id: 'paralelepipedo', img: 'pastaim/paralelepipedo.png' },
             { id: 'paralelepipedo', img: 'pastaim/caixa-leite.png' },
         ];
+
         let firstCard = null;
         let secondCard = null;
         let lockBoard = false;
@@ -136,6 +178,7 @@
 
         function createBoard() {
             const board = document.getElementById('board');
+            board.innerHTML = '';
             const shuffledCards = shuffle([...cardsData]);
             shuffledCards.forEach((cardInfo) => {
                 const card = document.createElement('div');
@@ -196,7 +239,24 @@
         }
 
         function reiniciarJogo() {
-            window.location.href = window.location.href;
+            movimentos = 0;
+            document.getElementById('movimentos').textContent = `Movimentos: 0`;
+            fogos.style.display = 'none';
+            musicaFinal.pause();
+            musicaFinal.currentTime = 0;
+            createBoard();
+        }
+
+        function toggleRegras() {
+            const regras = document.getElementById('regras');
+            const btn = document.getElementById('btnRegras');
+            if (regras.style.display === 'none') {
+                regras.style.display = 'block';
+                btn.textContent = 'Esconder Regras';
+            } else {
+                regras.style.display = 'none';
+                btn.textContent = 'Mostrar Regras';
+            }
         }
 
         createBoard();
